@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # loads the configs from .env
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-tm6iydrdcc=0l9@7upt4)cq5w+am5v9l#-7wy@_wj@pguqy5fw'
+SECRET_KEY = str(os.getenv('SECRET_KEY'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -38,13 +43,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     'djoser',
-    'rest_framework.authtoken',
+    'accounts',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -105,11 +112,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
+# https://docs.djangoproject.com/en/4.2/topics/i18 n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 
@@ -135,10 +142,42 @@ REST_FRAMEWORK = {
 DJOSER = {
     'SEND_ACTIVATION_EMAIL': True,
     'SEND_CONFIRMATION_EMAIL': True,
+    'EMAIL': {
+        'activation': 'config.email.ActivationEmail'
+    },
     'ACTIVATION_URL': 'activation/{uid}/{token}',
+    'USER_AUTHENTICATION_RULES': ['djoser.authentication.TokenAuthenticationRule'],
+    'SERIALIZERS': {
+        'user': 'accounts.serializers.LabTechSerializer',
+        'current_user': 'accounts.serializers.LabTechSerializer',
+        'user_create': 'accounts.serializers.LabTechRegistrationSerializer',
+    },
 }
 
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = '33e475b2bef1d9'
-EMAIL_HOST_PASSWORD = '0c55b156030a5d'
-EMAIL_PORT = '2525'
+# Email credentials
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_PORT = ''
+EMAIL_USE_TLS = False
+
+if (DEBUG == True):
+    EMAIL_HOST = str(os.getenv('DEV_EMAIL_HOST'))
+    EMAIL_HOST_USER = str(os.getenv('DEV_EMAIL_HOST_USER'))
+    EMAIL_HOST_PASSWORD = str(os.getenv('DEV_EMAIL_HOST_PASSWORD'))
+    EMAIL_PORT = str(os.getenv('DEV_EMAIL_PORT'))
+else:
+    EMAIL_HOST = str(os.getenv('PROD_EMAIL_HOST'))
+    EMAIL_HOST_USER = str(os.getenv('PROD_EMAIL_HOST_USER'))
+    EMAIL_HOST_PASSWORD = str(os.getenv('PROD_EMAIL_HOST_PASSWORD'))
+    EMAIL_PORT = str(os.getenv('PROD_EMAIL_PORT'))
+    EMAIL_USE_TLS = str(os.getenv('PROD_EMAIL_TLS'))
+
+
+AUTH_USER_MODEL = 'accounts.LabTechUser'
+
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
