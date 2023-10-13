@@ -5,16 +5,17 @@ from django.dispatch import receiver
 import os
 
 class LabTechUser(AbstractUser):
+    
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     department = models.CharField(max_length=50)
     is_labtech = models.BooleanField(default=False)
-    # Add any other fields you need
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
     pass
 
+#automatic mag create og superuser didto ra kuhaon sa .env  
 @receiver(post_migrate)
 def create_superuser(sender, **kwargs):
     if sender.name == 'accounts':
